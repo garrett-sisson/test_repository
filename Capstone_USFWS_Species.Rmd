@@ -7,6 +7,13 @@ output: html_document
 
 ## You can add headings using the pound symbol "#"
 
+
+```{r}
+library(sf)
+library(tidyverse)
+```
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
