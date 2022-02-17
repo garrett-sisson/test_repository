@@ -11,29 +11,60 @@ Demo changes.
 ```{r}
 library(sf)
 library(tidyverse)
+
+# Other useful packages!
+#library(units)
+#library(lwgeom)
+#library(raster)
+
+# Can be buggy and crash R, save often if using
+# library(mapview)
+
+```
+
+Loading Shapefiles
+```{r}
+# Load our shapefile
+shape1 = st_read("./shp/UTESFO_Database_2022.shp")
+
+# See "https://epsg.io/" to look up Coordinate Reference System Codes
+# This code is for NAD83 UTM Zone 12
+utm12 = st_crs("EPSG:26912") 
+
+#Use the CRS object to transform the shapefile to the appropriate projection
+shape1t = st_transform(shape1, utm12)
+
+# We can either pipe functions to do this in one line of code.  
+shape1t = st_read("./shp/UTESFO_Database_20211026.shp") %>% st_transform("EPSG:26912")
+```
+
+Some usefule functions I have coded and use often:
+### Functions
+```{r}
+# erase (standard Erase function) -- erases y from x
+# sf
+st_erase = function(x, y) st_difference(x, st_union(st_combine(y)))
+
+# eraser (Robust Erase) -- inserts a shapefile validation after dissolving the erase feature. sometimes necessary if the erase feature is a complex/irregular geometry
+# sf, lwgeom
+st_eraser = function(x, y) st_difference(x, st_make_valid(st_union(st_combine(y))))
+
+
+# Calculate Acres -- returns the area of the feature(s) but in units of acres instead of m^2 (default); note you easily change this function to report mi2, km2, etc.
+# sf, units
+st_acres = function(x) set_units(st_area(x),acre)
+
+# Dissolve -- for dissolving multiple features into a single geometry with no internal lines. To do this, you need to specify a field to dissolve by.  
+st_dissolve = function(data, field){
+x = data %>% mutate(name = field, acres = st_acres(geometry)) %>% group_by(name) %>% summarise(acres = sum(acres)) %>% mutate(acres = st_acres(geometry))
+return(x)
+}
 ```
 
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r}
+ranges = shape1t %>% filter(Type == "AOI") %>% filter(STATUS %in% c("Endangered", "Threatened", "Candidate")) 
+
+
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
