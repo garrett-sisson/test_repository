@@ -35,7 +35,7 @@ utm12 = st_crs("EPSG:26912")
 shape1t = st_transform(shape1, utm12)
 
 # We can either pipe functions to do this in one line of code.  
-shape1t = st_read("./shp/UTESFO_Database_20211026.shp") %>% st_transform("EPSG:26912")
+shape1t = st_read("./shp/UTESFO_Database_2022.shp") %>% st_transform("EPSG:26912")
 ```
 
 Some usefule functions I have coded and use often:
@@ -65,6 +65,7 @@ return(x)
 ```{r}
 ranges = shape1t %>% filter(Type == "AOI") %>% filter(STATUS %in% c("Endangered", "Threatened", "Candidate")) 
 
-
+# Warning-- do not attempt to open the dataframes of the species ranges without first removing the geometry column.  There are too many vertices in the fish ranges for R to handle.  
+ranges_data = ranges %>% st_drop_geometry()
 ```
 
